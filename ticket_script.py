@@ -5,6 +5,7 @@ from pickle import dump, load
 from os.path import exists
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.common import exceptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -80,12 +81,12 @@ class Concert(object):
     def enter_concert(self):
         print(u'###打开浏览器，进入大麦网###')
         if not exists('cookies.pkl'):   # 如果不存在cookie.pkl,就获取一下
-            self.driver = webdriver.Chrome(executable_path=self.driver_path)
+            self.driver = webdriver.Edge(executable_path=self.driver_path)
             self.get_cookie()
             print(u'###成功获取Cookie，重启浏览器###')
             self.driver.quit()
 
-        options = webdriver.ChromeOptions()
+        options = EdgeOptions()
         # 禁止图片、js、css加载
         prefs = {"profile.managed_default_content_settings.images": 2,
                  "profile.managed_default_content_settings.javascript": 1,
@@ -97,11 +98,9 @@ class Concert(object):
         options.add_argument("--disable-blink-features=AutomationControlled")
 
         # 更换等待策略为不等待浏览器加载完全就进行下一步操作
-        capa = DesiredCapabilities.CHROME
-        # normal, eager, none
-        capa["pageLoadStrategy"] = "eager"
-        self.driver = webdriver.Chrome(
-            executable_path=self.driver_path, options=options, desired_capabilities=capa)
+        options.page_load_strategy = "eager"
+        self.driver = webdriver.Edge(
+            executable_path=self.driver_path, options=options)
         # 登录到具体抢购页面
         self.login()
         self.driver.refresh()
@@ -350,7 +349,7 @@ class Concert(object):
 
 if __name__ == '__main__':
     try:
-        with open('./config.json', 'r', encoding='utf-8') as f:
+        with open('config\config.json', 'r', encoding='utf-8') as f:
             config = loads(f.read())
             # params: 场次优先级，票价优先级，实名者序号, 用户昵称， 购买票数， 官网网址， 目标网址, 浏览器驱动地址
         con = Concert(config['date'], config['sess'], config['price'], config['real_name'], config['nick_name'],
